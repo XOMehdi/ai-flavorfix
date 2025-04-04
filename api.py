@@ -28,6 +28,7 @@ Instructions:
 
 
 from fastapi import FastAPI, HTTPException, Depends
+import joblib
 from pydantic import BaseModel
 from typing import List
 import numpy as np
@@ -93,7 +94,7 @@ def load_model():
     try:
         # Load the pre-trained knn model
         with open('model/knn_model.pkl', 'rb') as f:
-            model = pickle.load(f)
+            model = joblib.load(f)
 
         # Load the MultiLabelBinarizer for ingredient encoding
         with open('model/multilabel_binarizer.pkl', 'rb') as f:
