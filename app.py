@@ -9,14 +9,15 @@ app = Flask(__name__)
 # Load unique ingredients from CSV
 try:
     unique_ingredients = pd.read_csv(
-        'model/unique_ingredients.csv', header=None)[0].str.lower().tolist()
+        'data/unique_ingredients.csv', header=None)[0].str.lower().tolist()
 except Exception as e:
     print(f"Error loading unique ingredients: {e}")
     unique_ingredients = []
 
 # Load your recipe dataset
 try:
-    recipes_df = pd.read_csv('model/data.csv')  # Adjust the path as necessary
+    # Adjust the path as necessary
+    recipes_df = pd.read_csv('data/processed_recipes.csv')
 except Exception as e:
     print(f"Error loading recipes dataset: {e}")
     recipes_df = pd.DataFrame()
@@ -29,14 +30,23 @@ def index():
 
 @app.route('/search_recipes', methods=['POST'])
 def search_recipes():
-    query = request.json.get('query', '').lower()
+    data = request.get_json()
+    query = data.get('query', '').lower()
+    page = int(data.get('page', 1))  # Default page = 1
+    page_size = int(data.get('page_size', 20))  # Default page_size = 20
 
     # Filter recipes based on the query
-    matching_recipes = recipes_df[recipes_df['TranslatedRecipeName'].str.contains(
+    matching_recipes = recipes_df[recipes_df['title'].str.contains(
         query, case=False, na=False)]
 
-    recipe_list = matching_recipes[['TranslatedRecipeName', 'TotalTimeInMins', 'Cuisine',
-                                    'image-url', 'TranslatedIngredients', 'TranslatedInstructions']].to_dict(orient='records')
+    # Pagination
+    start = (page - 1) * page_size
+    end = start + page_size
+    paginated_recipes = matching_recipes.iloc[start:end]
+
+    # Select required fields and convert to dict
+    recipe_list = paginated_recipes[['title', 'cooking_time', 'cuisine',
+                                     'image_url', 'translated_ingredients', 'instructions']].to_dict(orient='records')
 
     return jsonify(recipe_list)
 

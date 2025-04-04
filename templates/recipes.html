@@ -148,77 +148,90 @@
     <div id="recipe-container" class="recipe-box">
         <!-- Recipe cards will appear here dynamically -->
     </div>
+    <button id="load-more-btn" style="display: none; margin-top: 20px;" onclick="loadMoreRecipes()">Load More</button>
 </div>
 
 <script>
-    function searchRecipes() {
-        const query = document.getElementById('search-bar').value;
+    let currentPage = 1;
+    const pageSize = 20;
+    let currentQuery = '';
 
-        // If search is empty, clear the recipe container
-        if (!query) {
+    function searchRecipes() {
+        currentQuery = document.getElementById('search-bar').value;
+        currentPage = 1;
+
+        if (!currentQuery) {
             document.getElementById('recipe-container').innerHTML = '';
+            document.getElementById('load-more-btn').style.display = 'none';
             return;
         }
 
-        // Make an AJAX request to search recipes
+        fetchRecipes(currentQuery, currentPage, true);
+    }
+
+    function loadMoreRecipes() {
+        currentPage++;
+        fetchRecipes(currentQuery, currentPage, false);
+    }
+
+    function fetchRecipes(query, page, reset = false) {
         fetch('/search_recipes', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ query: query })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: query, page: page, page_size: pageSize })
         })
-        .then(response => response.json())
-        .then(recipes => {
-            const container = document.getElementById('recipe-container');
-            container.innerHTML = ''; // Clear current results
+            .then(response => response.json())
+            .then(recipes => {
+                const container = document.getElementById('recipe-container');
+                if (reset) container.innerHTML = ''; // reset on new search
 
-            if (recipes.length === 0) {
-                container.innerHTML = '<p>No recipes found.</p>';
-            } else {
+                if (recipes.length === 0 && reset) {
+                    container.innerHTML = '<p>No recipes found.</p>';
+                    document.getElementById('load-more-btn').style.display = 'none';
+                    return;
+                }
+
                 recipes.forEach(recipe => {
                     const recipeCard = document.createElement('div');
                     recipeCard.className = 'recipe-card';
 
-                    // Create the card structure
                     const cardInner = document.createElement('div');
                     cardInner.className = 'card-inner';
 
                     const cardFront = document.createElement('div');
                     cardFront.className = 'card-front';
                     cardFront.innerHTML = `
-                        <h3>${recipe.TranslatedRecipeName}</h3>
-                        <p>Time: ${recipe.TotalTimeInMins} minutes</p>
-                        <p>Cuisine: ${recipe.Cuisine}</p>
-                        <img src="${recipe['image-url']}" alt="${recipe.TranslatedRecipeName}">
-                    `;
+                    <h3>${recipe.title}</h3>
+                    <p>Time: ${recipe.cooking_time} minutes</p>
+                    <p>Cuisine: ${recipe.cuisine}</p>
+                    <img src="${recipe['image_url']}" alt="${recipe.title}" loading="lazy">
+                `;
 
                     const cardBack = document.createElement('div');
                     cardBack.className = 'card-back';
                     cardBack.innerHTML = `
-                        <h3>Ingredients</h3>
-                        <ul>
-                            ${recipe.TranslatedIngredients.split(',').map(ingredient => `<li>${ingredient}</li>`).join('')}
-                        </ul>
-                        <h3>Instructions</h3>
-                        <p>${recipe.TranslatedInstructions}</p>
-                    `;
+                    <h3>Ingredients</h3>
+                    <ul>
+                        ${recipe.translated_ingredients.split(',').map(ingredient => `<li>${ingredient}</li>`).join('')}
+                    </ul>
+                    <h3>Instructions</h3>
+                    <p>${recipe.instructions}</p>
+                `;
 
                     cardInner.appendChild(cardFront);
                     cardInner.appendChild(cardBack);
-
                     recipeCard.appendChild(cardInner);
 
-                    // Add click listener to flip the card
                     recipeCard.onclick = () => {
                         cardInner.classList.toggle('flipped');
                     };
 
                     container.appendChild(recipeCard);
                 });
-            }
-        })
-        .catch(error => console.error('Error fetching recipes:', error));
+
+                document.getElementById('load-more-btn').style.display = recipes.length === pageSize ? 'block' : 'none';
+            })
+            .catch(error => console.error('Error fetching recipes:', error));
     }
 </script>
 
