@@ -1,0 +1,191 @@
+/* General Styles */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f9f9f9;
+}
+
+header, footer {
+  background-color: #ff8c42;
+  color: white;
+  text-align: center;
+  padding: 15px 0;
+}
+
+main {
+  padding: 20px;
+  text-align: center;
+}
+
+/* Ingredient List Container */
+.ingredient-list {
+  max-width: 400px; /* Restrict width of the container */
+  margin: 0 auto; /* Center the container */
+  position: relative; /* Necessary for positioning suggestions */
+}
+
+#search-bar {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  box-sizing: border-box; /* Ensure padding is included in width */
+}
+
+/* Suggestions List */
+.suggestions-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  position: absolute; /* Float suggestions below the search bar */
+  width: 100%; /* Match the width of the search bar */
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  max-height: 200px; /* Constrain height */
+  overflow-y: auto; /* Add scroll bar if necessary */
+  box-sizing: border-box; /* Ensure padding/borders don't affect width */
+  z-index: 1000; /* Ensure it stays above other elements */
+}
+
+.suggestions-list li {
+  padding: 10px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.suggestions-list li:hover {
+  background-color: #f0f0f0;
+}
+
+.suggestions-list button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.suggestions-list button:hover {
+  background-color: #45a049;
+}
+
+/* Selected Ingredients */
+#selected-ingredients ul {
+  list-style: none;
+  padding: 10px;
+  margin: 0;
+  max-height: 150px; /* Limit height */
+  overflow-y: auto; /* Add scroll bar for overflow */
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #fff;
+  box-sizing: border-box; /* Include padding and border in width/height calculations */
+}
+
+#selected-ingredients ul li {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  border-bottom: 1px solid #ccc;
+}
+
+#selected-ingredients ul li button {
+  background-color: #ff4d4d;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#selected-ingredients ul li button:hover {
+  background-color: #ff3333;
+}
+
+/* Recipe Results */
+.recipe-box {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 15px;
+  margin: 10px;
+  display: inline-block;
+  width: calc(100% - 40px);
+  max-width: 300px;
+  text-align: center;
+  background-color: #f9f9f9;
+}
+/* Recipe Page Styles */
+.search-container {
+  max-width: 400px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+#recipe-search-bar {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+#recipe-results {
+  margin-top: 20px;
+}
+
+.recipe-box {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 15px;
+  margin: 10px auto;
+  max-width: 400px;
+  background-color: #f9f9f9;
+  text-align: left;
+}
+
+/* Home Page Styles */
+button {
+  font-size: 18px;
+  padding: 15px 30px;
+  margin: 20px;
+  color: white;
+  background-color: #4CAF50;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+.button-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  height: 70vh;
+  text-align: center;
+}
+
+.back-button {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 10px 20px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+.back-button:hover {
+  background-color: #45a049;
+}

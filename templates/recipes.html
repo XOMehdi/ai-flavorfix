@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recipes</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f4f8;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            width: 80%;
+            max-width: 1200px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        h1 {
+            font-size: 36px;
+            color: #444;
+            margin-bottom: 20px;
+        }
+
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 12px 25px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .back-button:hover {
+            background-color: #45a049;
+        }
+
+        .search-box {
+            margin: 20px 0;
+            padding: 10px;
+            width: 80%;
+            max-width: 400px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            font-size: 18px;
+            margin-bottom: 30px;
+        }
+
+        .recipe-box {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        /* Card flip effect */
+        .recipe-card {
+            perspective: 1000px;
+            cursor: pointer;
+        }
+
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            transition: transform 0.5s;
+            transform-style: preserve-3d;
+        }
+
+        .card-inner.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 10px;
+        }
+
+        .card-front {
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-back {
+            background-color: #f7f7f7;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: rotateY(180deg);
+            overflow-y: auto; /* Allow scrolling for long content */
+            max-height: 300px; /* Limit the height of the back section */
+        }
+
+        .recipe-card h3 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .recipe-card p {
+            font-size: 16px;
+            margin: 5px 0;
+            color: #666;
+        }
+
+        .recipe-card img {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        #recipe-container {
+            overflow-y: auto;
+            max-height: 400px;
+        }
+    </style>
+</head>
+<body>
+
+<button class="back-button" onclick="window.location.href='/'">Back to Home</button>
+
+<div class="container">
+    <h1>Search Recipes</h1>
+    <input type="text" id="search-bar" class="search-box" placeholder="Type recipe name..." onkeyup="searchRecipes()">
+    
+    <div id="recipe-container" class="recipe-box">
+        <!-- Recipe cards will appear here dynamically -->
+    </div>
+</div>
+
+<script>
+    function searchRecipes() {
+        const query = document.getElementById('search-bar').value;
+
+        // If search is empty, clear the recipe container
+        if (!query) {
+            document.getElementById('recipe-container').innerHTML = '';
+            return;
+        }
+
+        // Make an AJAX request to search recipes
+        fetch('/search_recipes', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ query: query })
+        })
+        .then(response => response.json())
+        .then(recipes => {
+            const container = document.getElementById('recipe-container');
+            container.innerHTML = ''; // Clear current results
+
+            if (recipes.length === 0) {
+                container.innerHTML = '<p>No recipes found.</p>';
+            } else {
+                recipes.forEach(recipe => {
+                    const recipeCard = document.createElement('div');
+                    recipeCard.className = 'recipe-card';
+
+                    // Create the card structure
+                    const cardInner = document.createElement('div');
+                    cardInner.className = 'card-inner';
+
+                    const cardFront = document.createElement('div');
+                    cardFront.className = 'card-front';
+                    cardFront.innerHTML = `
+                        <h3>${recipe.TranslatedRecipeName}</h3>
+                        <p>Time: ${recipe.TotalTimeInMins} minutes</p>
+                        <p>Cuisine: ${recipe.Cuisine}</p>
+                        <img src="${recipe['image-url']}" alt="${recipe.TranslatedRecipeName}">
+                    `;
+
+                    const cardBack = document.createElement('div');
+                    cardBack.className = 'card-back';
+                    cardBack.innerHTML = `
+                        <h3>Ingredients</h3>
+                        <ul>
+                            ${recipe.TranslatedIngredients.split(',').map(ingredient => `<li>${ingredient}</li>`).join('')}
+                        </ul>
+                        <h3>Instructions</h3>
+                        <p>${recipe.TranslatedInstructions}</p>
+                    `;
+
+                    cardInner.appendChild(cardFront);
+                    cardInner.appendChild(cardBack);
+
+                    recipeCard.appendChild(cardInner);
+
+                    // Add click listener to flip the card
+                    recipeCard.onclick = () => {
+                        cardInner.classList.toggle('flipped');
+                    };
+
+                    container.appendChild(recipeCard);
+                });
+            }
+        })
+        .catch(error => console.error('Error fetching recipes:', error));
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AIFlaour Fix</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header>
+    <h1>AIFlaour Fix</h1>
+    <p>Your AI-powered recipe creator!</p>
+  </header>
+
+  <button class="back-button" onclick="window.location.href='/'">Back to Home</button>
+
+  <main>
+    <section id="add-ingredients-section">
+      <h2>Add Ingredients</h2>
+      <div class="ingredient-list">
+        <h3>Search for Ingredients</h3>
+        <input type="text" id="search-bar" placeholder="Search for ingredients..." autocomplete="off">
+        <ul id="suggestions" class="suggestions-list"></ul>
+        
+        <h3>Selected Ingredients</h3>
+        <div id="selected-ingredients">
+          <ul id="ingredient-list"></ul>
+        </div>
+        
+        <button id="get-recipe-btn" onclick="getRecipes()">Get Recipes</button>
+      </div>
+    </section>
+
+    <section id="recipe-results" class="hidden">
+      <h2>Generated Recipes</h2>
+      <div id="recipe-container"></div>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2024 AIFlaour Fix</p>
+  </footer>
+
+  <script>
+    const searchBar = document.getElementById('search-bar');
+    const suggestionsList = document.getElementById('suggestions');
+    const ingredientList = document.getElementById('ingredient-list');
+    const recipeContainer = document.getElementById('recipe-container');
+    let selectedIngredients = [];
+
+    // Search functionality
+    searchBar.addEventListener('input', () => {
+      const query = searchBar.value.trim();
+      if (query.length > 0) {
+        fetch('/search_ingredients', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: query })
+        })
+        .then(response => response.json())
+        .then(data => displaySuggestions(data))
+        .catch(error => console.error('Error fetching suggestions:', error));
+      } else {
+        suggestionsList.innerHTML = ''; // Clear suggestions if input is empty
+      }
+    });
+
+    function displaySuggestions(suggestions) {
+      suggestionsList.innerHTML = '';
+      suggestions.forEach(suggestion => {
+        const li = document.createElement('li');
+        li.textContent = suggestion;
+        const addButton = document.createElement('button');
+        addButton.textContent = 'Add';
+        addButton.addEventListener('click', () => {
+          addIngredient(suggestion);
+          searchBar.value = '';
+          suggestionsList.innerHTML = '';
+        });
+        li.appendChild(addButton);
+        suggestionsList.appendChild(li);
+      });
+    }
+
+    // Add ingredient to selected list
+    function addIngredient(ingredient) {
+      if (!selectedIngredients.includes(ingredient)) {
+        selectedIngredients.push(ingredient);
+        updateSelectedIngredients();
+      }
+    }
+
+    function updateSelectedIngredients() {
+      ingredientList.innerHTML = '';
+      selectedIngredients.forEach(ingredient => {
+        const li = document.createElement('li');
+        li.textContent = ingredient;
+        const removeButton = document.createElement('button');
+        removeButton.textContent = 'Remove';
+        removeButton.addEventListener('click', () => {
+          removeIngredient(ingredient);
+        });
+        li.appendChild(removeButton);
+        ingredientList.appendChild(li);
+      });
+    }
+
+    function removeIngredient(ingredient) {
+      const index = selectedIngredients.indexOf(ingredient);
+      if (index !== -1) {
+        selectedIngredients.splice(index, 1);
+        updateSelectedIngredients();
+      }
+    }
+
+    // Fetch recipes from the backend
+    function getRecipes() {
+      if (selectedIngredients.length === 0) {
+        alert('Please add some ingredients before getting recipes!');
+        return;
+      }
+      fetch('/get_recipe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ingredients: selectedIngredients })
+      })
+      .then(response => response.json())
+      .then(data => displayRecipes(data.recipes))
+      .catch(error => console.error('Error fetching recipes:', error));
+    }
+
+    function displayRecipes(recipes) {
+      recipeContainer.innerHTML = '';
+      if (recipes && recipes.length > 0) {
+        recipes.forEach((recipe, index) => {
+          const div = document.createElement('div');
+          div.classList.add('recipe-box');
+          div.innerHTML = `<h4>Recipe ${index + 1}</h4><p>${recipe}</p>`;
+          div.innerHTML = `
+            <h4>Recipe ${index + 1}: ${recipe.title}</h4>
+            <p><strong>Cuisine:</strong> ${recipe.cuisine}</p>
+            <p><strong>Similarity Score:</strong> ${Math.trunc(recipe.similarity_score*10000)/10000}</p>
+            <p><strong>Cooking Time:</strong> ${recipe.cooking_time} minutes</p>
+            <p><strong>Ingredients:</strong> ${recipe.ingredients.join(', ')}</p>
+            <p><strong>Instructions:</strong> ${recipe.instructions}...</p>
+            <a href="${recipe.url}" target="_blank">Read More</a>
+          `;
+          recipeContainer.appendChild(div);
+        });
+        document.getElementById('recipe-results').classList.remove('hidden');
+      } else {
+        recipeContainer.innerHTML = '<p>No recipes found. Please try different ingredients.</p>';
+      }
+    }
+  </script>
+</body>
+</html>
